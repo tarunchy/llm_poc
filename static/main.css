@@ -1,0 +1,21 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+form {
+    margin-bottom: 2rem;
+}
+
+input, textarea, button {
+    font-size: 1rem;
+}
+
+input, textarea {
+    margin-top: 0.5rem;
+    display: block;
+}
+
+button {
+    margin-top: 1rem;
+}
+

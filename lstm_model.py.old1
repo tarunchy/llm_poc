@@ -1,0 +1,30 @@
+import numpy as np
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+class LSTMModel:
+    def __init__(self, model_path, tokenizer_path):
+        self.model = load_model(model_path)
+        self.tokenizer = Tokenizer()
+        with open(tokenizer_path, 'r') as f:
+            self.tokenizer = Tokenizer.from_json(f.read())
+
+    def predict_next_word(self, input_text):
+        token_list = self.tokenizer.texts_to_sequences([input_text])[0]
+        token_list = pad_sequences([token_list], maxlen=self.model.layers[0].input_shape[1], padding='pre')
+        prediction = self.model.predict(token_list, verbose=0)
+        predicted_word_index = np.argmax(prediction, axis=-1)
+        output_word = ""
+        for word, index in self.tokenizer.word_index.items():
+            if index == predicted_word_index:
+                output_word = word
+                break
+        return output_word
+
+# Load the model and the tokenizer
+model_path = "./model.h5"
+tokenizer_path = "./tokenizer.json"
+
+model = LSTMModel(model_path, tokenizer_path)
+

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Word Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <h1>Next Word Prediction</h1>
+    <form id="predict-form">
+        <label for="input_text">Input Text:</label>
+        <input type="text" id="input_text" name="input_text">
+        <button type="submit">Predict Next Word</button>
+    </form>
+    <p id="prediction"></p>
+    
+    <hr>
+
+    <h2>Train Model</h2>
+    <form id="train-form">
+        <label for="training_data">Training Data:</label>
+        <textarea id="training_data" name="training_data" rows="4" cols="50"></textarea>
+        <button type="submit">Train</button>
+    </form>
+    <p id="train-message"></p>
+    <div class="progress mt-3" style="display: none;" id="progress-container">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id="progress-bar" style="width: 0%;">
+        </div>
+    </div>
+
+    <hr>
+
+    <h2>Retrain Model</h2>
+    <form id="retrain-form">
+        <label for="new_text">New Text:</label>
+        <input type="text" id="new_text" name="new_text">
+        <button type="submit">Retrain</button>
+    </form>
+    <p id="retrain-message"></p>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        
+        socket.on('training_progress', function(progress) {
+            $('#progress-container').show();
+            $('#progress-bar').css('width', (progress * 100) + '%');
+            if (progress >= 1) {
+                $('#progress-container').hide();
+                $('#progress-bar').css('width', '0%');
+                $('#train-message').text('Training completed!');
+            }
+        });
+
+        $("#predict-form").submit(function(event) {
+            event.preventDefault();
+            let inputText = $("#input_text").val();
+            $.post("/predict", { input_text: inputText }, function(data) {
+                $("#prediction").text("Next word: " + data.prediction);
+            });
+        });
+
+        $("#train-form").submit(function(event) {
+            event.preventDefault();
+            let trainingData = $("#training_data").val();
+            $.post("/train", { training_data: trainingData }, function(data) {
+                if (data.success) {
+                    $("#train-message").text("Training started!");
+                } else {
+                    $("#train-message").text("Training failed.");
+                }
+            });
+        });
+
+
+	            $("#retrain-form").submit(function(event) {
+            event.preventDefault();
+            let newText = $("#new_text").val();
+            $.post("/retrain", { new_text: newText }, function(data) {
+                if (data.success) {
+                    $("#retrain-message").text("Retraining successful!");
+                } else {
+                    $("#retrain-message").text("Retraining failed.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

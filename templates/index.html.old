@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Model POC</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Language Model POC</h1>
+    <form id="predict-form">
+        <label for="input_text">Enter text:</label>
+        <input type="text" id="input_text" name="input_text">
+        <button type="submit">Predict next word</button>
+    </form>
+    <p id="prediction"></p>
+    <form id="retrain-form">
+        <label for="new_text">New training text:</label>
+        <textarea id="new_text" name="new_text"></textarea>
+        <button type="submit">Retrain model</button>
+    </form>
+    <p id="retrain-status"></p>
+    <script>
+        document.getElementById('predict-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const input_text = document.getElementById('input_text').value;
+            const response = await axios.post('/predict', { input_text });
+            document.getElementById('prediction').textContent = 'Next word: ' + response.data.prediction;
+        });
+
+        document.getElementById('retrain-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const new_text = document.getElementById('new_text').value;
+            await axios.post('/retrain', { new_text });
+            document.getElementById('retrain-status').textContent = 'Model retrained!';
+        });
+    </script>
+</body>
+</html>
+

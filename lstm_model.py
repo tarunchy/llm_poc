@@ -52,12 +52,7 @@ class LSTMModel:
         model.add(LSTM(100))
         model.add(Dense(total_words, activation='softmax'))
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-        if callback:
-            progress_callback = TrainingProgressCallback(socket_callback=callback)
-            model.fit(predictors, label, epochs=epochs, verbose=1, callbacks=[progress_callback])
-        else:
-            model.fit(predictors, label, epochs=epochs, verbose=1)
+        model.fit(predictors, label, epochs=epochs, verbose=1)
 
         self.model = model
         self.tokenizer = tokenizer

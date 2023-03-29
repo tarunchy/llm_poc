@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from lstm_model import LSTMModel
-from training_progress_callback import TrainingProgressCallback
+from lstm_model import TrainingProgressCallback
 
 app = Flask(__name__)
 model = LSTMModel()
@@ -19,8 +19,11 @@ def predict():
 @app.route('/train', methods=['POST'])
 def train():
     training_data = request.form['training_data']
+    print(f'training_data={training_data}')
+    sentences = training_data.split('\n')
+    print(f'sentences={sentences}')
     progress_callback = TrainingProgressCallback(socket_callback=send_progress)
-    model.train(training_data.split('\n'), epochs=10, callbacks=[progress_callback])
+    model.train(training_data.split('\n'), epochs=200)
     return jsonify(success=True)
 
 @app.route('/retrain', methods=['POST'])
@@ -57,8 +60,8 @@ if __name__ == '__main__':
     @app.route('/train', methods=['POST'])
     def train():
         training_data = request.form['training_data']
-        progress_callback = TrainingProgressCallback(socket_callback=send_progress)
-        model.train(training_data.split('\n'), epochs=10, callbacks=[progress_callback])
+        #progress_callback = TrainingProgressCallback(socket_callback=send_progress)
+        model.train(training_data.split('\n'), epochs=10)
         return jsonify(success=True)
 
     @app.route('/retrain', methods=['POST'])

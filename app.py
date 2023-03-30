@@ -30,16 +30,13 @@ def train():
     if not training_data:
         return jsonify(success=False, message='Missing training data')
     print(f'training_data={training_data}')
-    model.train(training_data.split('\n'), epochs=10)
+    epochs = int(request.form['epochs'])
+    model.train(training_data.split('\n'), epochs=epochs)
     return jsonify(success=True)
 if __name__ == '__main__':
-    from gevent.pywsgi import WSGIServer
-    from geventwebsocket.handler import WebSocketHandler
-    from flask_socketio import SocketIO, send, emit
 
     # Initialize Flask app and SocketIO
     app = Flask(__name__)
-    socketio = SocketIO(app, cors_allowed_origins='*')
     model = LSTMModel()
 
 

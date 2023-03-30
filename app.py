@@ -1,7 +1,6 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from lstm_model import LSTMModel
-from lstm_model import TrainingProgressCallback
 
 app = Flask(__name__)
 model = LSTMModel()
@@ -16,26 +15,23 @@ def predict():
     prediction = model.predict_next_word(input_text)
     return jsonify(prediction=prediction)
 
+
+@app.route('/model_log')
+def model_log():
+    with open('model.log', 'r') as f:
+        log_text = f.read()
+    return render_template('model_log.html', log_text=log_text)
+
+
+
 @app.route('/train', methods=['POST'])
 def train():
-    training_data = request.form['training_data']
+    training_data = request.form.get('training_data')
+    if not training_data:
+        return jsonify(success=False, message='Missing training data')
     print(f'training_data={training_data}')
-    sentences = training_data.split('\n')
-    print(f'sentences={sentences}')
-    progress_callback = TrainingProgressCallback(socket_callback=send_progress)
-    model.train(training_data.split('\n'), epochs=200)
+    model.train(training_data.split('\n'), epochs=10)
     return jsonify(success=True)
-
-@app.route('/retrain', methods=['POST'])
-def retrain():
-    new_text = request.form['new_text']
-    model.train([new_text], epochs=10)
-    return jsonify(success=True)
-
-def send_progress(epoch, logs):
-    progress = (epoch + 1) / 10
-    socketio.emit('training_progress', progress)
-
 if __name__ == '__main__':
     from gevent.pywsgi import WSGIServer
     from geventwebsocket.handler import WebSocketHandler
@@ -46,35 +42,4 @@ if __name__ == '__main__':
     socketio = SocketIO(app, cors_allowed_origins='*')
     model = LSTMModel()
 
-    # Define routes
-    @app.route('/')
-    def index():
-        return render_template('index.html')
-
-    @app.route('/predict', methods=['POST'])
-    def predict():
-        input_text = request.form['input_text']
-        prediction = model.predict_next_word(input_text)
-        return jsonify(prediction=prediction)
-
-    @app.route('/train', methods=['POST'])
-    def train():
-        training_data = request.form['training_data']
-        #progress_callback = TrainingProgressCallback(socket_callback=send_progress)
-        model.train(training_data.split('\n'), epochs=10)
-        return jsonify(success=True)
-
-    @app.route('/retrain', methods=['POST'])
-    def retrain():
-        new_text = request.form['new_text']
-        model.train([new_text], epochs=10)
-        return jsonify(success=True)
-
-    def send_progress(epoch, logs):
-        progress = (epoch + 1) / 10
-        socketio.emit('training_progress', progress)
-
-    # Run the app using Gevent WSGI server with WebSocket support
-    http_server = WSGIServer(('0.0.0.0', 8000), app, handler_class=WebSocketHandler)
-    socketio.run(app, server=http_server)
 
